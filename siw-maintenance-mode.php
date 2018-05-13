@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name: SIW Maintenance Mode
- * Plugin URI: https://github.com/siwvolunteers
+ * Plugin URI: https://github.com/siwvolunteers/siw-maintenance-mode
  * Description: Maintenance mode voor www.siw.nl
- * Version: 1.0
+ * Version: 1.1
  * Author: Maarten Bruna
  */
 
@@ -13,6 +13,12 @@ if ( ! defined( 'ABSPATH' ) ) {
 register_activation_hook( __FILE__, 'siw_maintenance_mode_activation' );
 register_deactivation_hook( __FILE__, 'siw_maintenance_mode_deactivation' );
 
+
+/**
+ * Cache legen als plugin geactiveerd wordt
+ *
+ * @return void
+ */
 function siw_maintenance_mode_activation() {
 	if ( ! current_user_can( 'activate_plugins' ) ) {
 		return;
@@ -29,6 +35,12 @@ function siw_maintenance_mode_activation() {
 	}
 }
 
+
+/**
+ * Cache legen en preload starten als plugin gedeactiveerd wordt
+ *
+ * @return void
+ */
 function siw_maintenance_mode_deactivation() {
 	if ( ! current_user_can( 'activate_plugins' ) ) {
 		return;
@@ -36,21 +48,25 @@ function siw_maintenance_mode_deactivation() {
 	$plugin = isset( $_REQUEST['plugin'] ) ? $_REQUEST['plugin'] : '';
 	check_admin_referer( "deactivate-plugin_{$plugin}" );
   
-    if ( function_exists( 'rocket_clean_domain' ) ) {
+    if ( function_exists( 'rocket_clean_domain' ) && function_exists( 'run_rocket_sitemap_preload' ) ) {
 		rocket_clean_domain();
 		run_rocket_sitemap_preload();
 		remove_action( 'deactivated_plugin', 'rocket_dismiss_plugin_box' );
 		rocket_dismiss_box( 'rocket_dismiss_plugin_box' );
 	}
-	
-
 }
+
+
 /**
  * Admin notice dat Maintenance mode actief is.
  */
 add_action( 'admin_notices', function () {
 	echo '<div class="notice notice-warning"><p><b>' . __( 'Maintenance mode is actief.', 'siw' ) . '</b></p></div>';
 });
+
+
+/* Caching uitzetten*/
+add_filter( 'do_rocket_generate_caching_files', '__return_false' );
 
 
 /* Toon Maintenance scherm voor niet-ingelogde gebruikers */
@@ -63,8 +79,8 @@ add_action( 'get_header', function() {
 	$image_dir = plugin_dir_url( __FILE__ ) . 'images';
 	$html = 
 		"<h1><img src='{$image_dir}/logo.png' width='150px'></h1>" .
-		'<p>' . __( 'In verband met onderhoud is onze website tijdelijk niet beschikbaar.', 'siw' ) .  '<br> ' .
-		 __('Onze excuses voor het ongemak.', 'siw' ) . '</p>' ;
+		'<p>' . esc_html__( 'In verband met onderhoud is onze website tijdelijk niet beschikbaar.', 'siw' ) .  '<br> ' .
+		esc_html__( 'Onze excuses voor het ongemak.', 'siw' ) . '</p>' ;
 	$style =
 	"<style>
 	html{
@@ -83,7 +99,6 @@ add_action( 'get_header', function() {
 
 	header( 'Retry-After: 3600' );
   	wp_die( $content, __( 'Onderhoud', 'siw' ), 503 );
-
 });
 
 
