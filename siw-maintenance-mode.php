@@ -3,7 +3,7 @@
  * Plugin Name: SIW Maintenance Mode
  * Plugin URI: https://github.com/siwvolunteers/siw-maintenance-mode
  * Description: Maintenance mode voor www.siw.nl
- * Version: 1.1
+ * Version: 1.2
  * Author: Maarten Bruna
  */
 
@@ -31,13 +31,12 @@ function siw_maintenance_mode_activation() {
     if ( function_exists( 'rocket_clean_domain' ) ) {
 		rocket_clean_domain();
 		remove_action( 'activated_plugin', 'rocket_dismiss_plugin_box' );
-		rocket_dismiss_box( 'rocket_dismiss_plugin_box' );
 	}
 }
 
 
 /**
- * Cache legen en preload starten als plugin gedeactiveerd wordt
+ * Cache legen (inclusief minified bestanden) en preload starten als plugin gedeactiveerd wordt
  *
  * @return void
  */
@@ -50,9 +49,10 @@ function siw_maintenance_mode_deactivation() {
   
     if ( function_exists( 'rocket_clean_domain' ) && function_exists( 'run_rocket_sitemap_preload' ) ) {
 		rocket_clean_domain();
+		rocket_clean_minify();
+		rocket_clean_cache_busting();
 		run_rocket_sitemap_preload();
 		remove_action( 'deactivated_plugin', 'rocket_dismiss_plugin_box' );
-		rocket_dismiss_box( 'rocket_dismiss_plugin_box' );
 	}
 }
 
@@ -100,5 +100,3 @@ add_action( 'get_header', function() {
 	header( 'Retry-After: 3600' );
   	wp_die( $content, __( 'Onderhoud', 'siw' ), 503 );
 });
-
-
