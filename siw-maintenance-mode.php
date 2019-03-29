@@ -10,7 +10,7 @@
  * Plugin Name:	SIW Maintenance Mode
  * Plugin URI:	https://github.com/siwvolunteers/siw-maintenance-mode
  * Description: Maintenance mode voor www.siw.nl
- * Version:     1.4
+ * Version:     1.4.1
  * Author:      Maarten Bruna
  * Text Domain: siw
  */
@@ -61,7 +61,7 @@ class SIW_Maintenance_Mode {
 			return;
 		}
 		
-		$plugin = isset( $_REQUEST['plugin'] ) ? $_REQUEST['plugin'] : '';
+		$plugin = $this->get_plugin_from_request();
 		check_admin_referer( "activate-plugin_{$plugin}" );
 		if ( function_exists( 'rocket_clean_domain' ) ) {
 			rocket_clean_domain();
@@ -76,7 +76,7 @@ class SIW_Maintenance_Mode {
 		if ( ! current_user_can( 'activate_plugins' ) ) {
 			return;
 		}
-		$plugin = isset( $_REQUEST['plugin'] ) ? $_REQUEST['plugin'] : '';
+		$plugin = $this->get_plugin_from_request();
 		check_admin_referer( "deactivate-plugin_{$plugin}" );
 	  
 		if ( function_exists( 'rocket_clean_domain' ) && function_exists( 'run_rocket_sitemap_preload' ) ) {
@@ -89,6 +89,16 @@ class SIW_Maintenance_Mode {
 	}
 
 	/**
+	 * Haalt plugin-naam uit request-global
+	 * 
+	 * @return string
+	 */
+	protected function get_plugin_from_request() {
+		$plugin = isset( $_REQUEST['plugin'] ) ? esc_attr( $_REQUEST['plugin'] ) : '';
+		return $plugin;
+	}
+
+	/**
 	 * Cache uitschakelen
 	 */
 	protected function disable_cache() {
@@ -98,14 +108,14 @@ class SIW_Maintenance_Mode {
 	/**
 	 * Toon melding dat maintenance mode actief is
 	 */
-	protected function show_admin_notice() {
+	public function show_admin_notice() {
 		echo '<div class="notice notice-warning"><p><b>' . esc_html__( 'Maintenance mode is actief.', 'siw' ) . '</b></p></div>';
 	}
 
 	/**
 	 * Onderhoudsscherm tonen voor niet-ingelogde gebruikers
 	 */
-	protected function show_maintenance_screen() {
+	public function show_maintenance_screen() {
 
 		global $pagenow;
 		if ( $pagenow == 'wp-login.php' || current_user_can( 'manage_options' ) || is_admin() ) {
@@ -131,10 +141,9 @@ class SIW_Maintenance_Mode {
 		}
 		</style>
 		";
-		$content = $html . $style;
 	
 		header( 'Retry-After: 3600' );
-		wp_die( $content, __( 'Onderhoud', 'siw' ), 503 );
+		wp_die( $html . $style, esc_html__( 'Onderhoud', 'siw' ), 503 );
 	}
 }
 
