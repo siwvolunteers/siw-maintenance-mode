@@ -4,13 +4,13 @@
  *
  * @package     SIW\Maintenance-Mode
  * @author      Maarten Bruna
- * @copyright   2017-2019 SIW Internationale Vrijwilligersprojecten
+ * @copyright   2017-2020 SIW Internationale Vrijwilligersprojecten
  *
  * @wordpress-plugin
  * Plugin Name:	SIW Maintenance Mode
  * Plugin URI:	https://github.com/siwvolunteers/siw-maintenance-mode
  * Description: Maintenance mode voor www.siw.nl
- * Version:     1.4.1
+ * Version:     1.4.2
  * Author:      Maarten Bruna
  * Text Domain: siw
  */
@@ -38,15 +38,14 @@ class SIW_Maintenance_Mode {
 	 */
 	public function __construct() {
 		$this->register_hooks();
-		$this->disable_cache();
+
+		add_filter( 'do_rocket_generate_caching_files', '__return_false' );
 		add_action( 'admin_notices', [ $this, 'show_admin_notice' ] );
 		add_action( 'get_header', [ $this, 'show_maintenance_screen'] );
 	}
 
 	/**
 	 * Registeert activatie- en deactivatiehooks
-	 *
-	 * @return void
 	 */
 	protected function register_hooks(){
 		register_activation_hook( __FILE__, [ $this, 'activate' ] );
@@ -93,16 +92,8 @@ class SIW_Maintenance_Mode {
 	 * 
 	 * @return string
 	 */
-	protected function get_plugin_from_request() {
-		$plugin = isset( $_REQUEST['plugin'] ) ? esc_attr( $_REQUEST['plugin'] ) : '';
-		return $plugin;
-	}
-
-	/**
-	 * Cache uitschakelen
-	 */
-	protected function disable_cache() {
-		add_filter( 'do_rocket_generate_caching_files', '__return_false' );
+	protected function get_plugin_from_request() : string {
+		return isset( $_REQUEST['plugin'] ) ? esc_attr( $_REQUEST['plugin'] ) : '';
 	}
 	
 	/**
