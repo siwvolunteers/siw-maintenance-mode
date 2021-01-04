@@ -3,16 +3,19 @@
  * SIW Maintenance Mode
  *
  * @package     SIW\Maintenance-Mode
- * @author      Maarten Bruna
  * @copyright   2017-2020 SIW Internationale Vrijwilligersprojecten
  *
  * @wordpress-plugin
- * Plugin Name:	SIW Maintenance Mode
- * Plugin URI:	https://github.com/siwvolunteers/siw-maintenance-mode
- * Description: Maintenance mode voor www.siw.nl
- * Version:     1.4.2
- * Author:      Maarten Bruna
- * Text Domain: siw
+ * Plugin Name:       SIW Maintenance Mode
+ * Plugin URI:        https://github.com/siwvolunteers/siw-maintenance-mode
+ * Description:       Maintenance mode voor www.siw.nl
+ * Version:           1.4.3
+ * Author:            SIW Internationale Vrijwilligersprojecten
+ * Author URI:        https://www.siw.nl
+ * Text Domain:       siw-maintenance-mode
+ * License:           GPLv2 or later
+ * Requires at least: 5.5
+ * Requires PHP:      7.4
  */
  
 if ( ! defined( 'ABSPATH' ) ) {
@@ -37,19 +40,20 @@ class SIW_Maintenance_Mode {
 	 * - Toon onderhoudsscherm aan niet-ingelogde gebruiker
 	 */
 	public function __construct() {
-		$this->register_hooks();
+		register_activation_hook( __FILE__, [ $this, 'activate' ] );
+		register_deactivation_hook( __FILE__, [ $this, 'deactivate' ] );
 
 		add_filter( 'do_rocket_generate_caching_files', '__return_false' );
 		add_action( 'admin_notices', [ $this, 'show_admin_notice' ] );
 		add_action( 'get_header', [ $this, 'show_maintenance_screen'] );
+		add_action( 'init', [ $this, 'load_textdomain'] );
 	}
 
 	/**
-	 * Registeert activatie- en deactivatiehooks
+	 * Laadt vertalingen
 	 */
-	protected function register_hooks(){
-		register_activation_hook( __FILE__, [ $this, 'activate' ] );
-		register_deactivation_hook( __FILE__, [ $this, 'deactivate' ] );
+	public function load_textdomain() {
+		load_plugin_textdomain( 'siw-maintenance-mode', false, 'siw-maintenance-mode/languages' );
 	}
 
 	/**
@@ -77,7 +81,7 @@ class SIW_Maintenance_Mode {
 		}
 		$plugin = $this->get_plugin_from_request();
 		check_admin_referer( "deactivate-plugin_{$plugin}" );
-	  
+
 		if ( function_exists( 'rocket_clean_domain' ) && function_exists( 'run_rocket_sitemap_preload' ) ) {
 			rocket_clean_domain();
 			rocket_clean_minify();
@@ -100,7 +104,7 @@ class SIW_Maintenance_Mode {
 	 * Toon melding dat maintenance mode actief is
 	 */
 	public function show_admin_notice() {
-		echo '<div class="notice notice-warning"><p><b>' . esc_html__( 'Maintenance mode is actief.', 'siw' ) . '</b></p></div>';
+		echo '<div class="notice notice-warning"><p><b>' . esc_html__( 'Maintenance mode is actief.', 'siw-maintenance-mode' ) . '</b></p></div>';
 	}
 
 	/**
@@ -116,8 +120,8 @@ class SIW_Maintenance_Mode {
 		$image_dir = plugin_dir_url( __FILE__ ) . 'images';
 		$html = 
 			"<h1><img src='{$image_dir}/logo.png' width='150px'></h1>" .
-			'<p>' . esc_html__( 'In verband met onderhoud is onze website tijdelijk niet beschikbaar.', 'siw' ) . '<br> ' .
-			esc_html__( 'Onze excuses voor het ongemak.', 'siw' ) . '</p>' ;
+			'<p>' . esc_html__( 'In verband met onderhoud is onze website tijdelijk niet beschikbaar.', 'siw-maintenance-mode' ) . '<br> ' .
+			esc_html__( 'Onze excuses voor het ongemak.', 'siw-maintenance-mode' ) . '</p>' ;
 		$style =
 		"<style>
 		html{
@@ -134,7 +138,7 @@ class SIW_Maintenance_Mode {
 		";
 	
 		header( 'Retry-After: 3600' );
-		wp_die( $html . $style, esc_html__( 'Onderhoud', 'siw' ), 503 );
+		wp_die( $html . $style, esc_html__( 'Onderhoud', 'siw-maintenance-mode' ), 503 );
 	}
 }
 
