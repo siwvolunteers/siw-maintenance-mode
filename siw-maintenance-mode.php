@@ -9,7 +9,7 @@
  * Plugin Name:       SIW Maintenance Mode
  * Plugin URI:        https://github.com/siwvolunteers/siw-maintenance-mode
  * Description:       Maintenance mode voor www.siw.nl
- * Version:           1.4.3
+ * Version:           1.4.4
  * Author:            SIW Internationale Vrijwilligersprojecten
  * Author URI:        https://www.siw.nl
  * Text Domain:       siw-maintenance-mode
@@ -49,16 +49,12 @@ class SIW_Maintenance_Mode {
 		add_action( 'init', [ $this, 'load_textdomain'] );
 	}
 
-	/**
-	 * Laadt vertalingen
-	 */
+	/** Laadt vertalingen */
 	public function load_textdomain() {
 		load_plugin_textdomain( 'siw-maintenance-mode', false, 'siw-maintenance-mode/languages' );
 	}
 
-	/**
-	 * Cache legen als plugin geactiveerd wordt
-	 */
+	/** Cache legen als plugin geactiveerd wordt */
 	public function activate() {
 		if ( ! current_user_can( 'activate_plugins' ) ) {
 			return;
@@ -91,25 +87,17 @@ class SIW_Maintenance_Mode {
 		}
 	}
 
-	/**
-	 * Haalt plugin-naam uit request-global
-	 * 
-	 * @return string
-	 */
-	protected function get_plugin_from_request() : string {
+	/** Haalt plugin-naam uit request-global */
+	protected function get_plugin_from_request(): string {
 		return isset( $_REQUEST['plugin'] ) ? esc_attr( $_REQUEST['plugin'] ) : '';
 	}
 	
-	/**
-	 * Toon melding dat maintenance mode actief is
-	 */
+	/** Toon melding dat maintenance mode actief is */
 	public function show_admin_notice() {
 		echo '<div class="notice notice-warning"><p><b>' . esc_html__( 'Maintenance mode is actief.', 'siw-maintenance-mode' ) . '</b></p></div>';
 	}
 
-	/**
-	 * Onderhoudsscherm tonen voor niet-ingelogde gebruikers
-	 */
+	/** Onderhoudsscherm tonen voor niet-ingelogde gebruikers */
 	public function show_maintenance_screen() {
 
 		global $pagenow;
