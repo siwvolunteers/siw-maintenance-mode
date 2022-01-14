@@ -3,13 +3,13 @@
  * SIW Maintenance Mode
  *
  * @package     SIW\Maintenance-Mode
- * @copyright   2017-2020 SIW Internationale Vrijwilligersprojecten
+ * @copyright   2017-2022 SIW Internationale Vrijwilligersprojecten
  *
  * @wordpress-plugin
  * Plugin Name:       SIW Maintenance Mode
  * Plugin URI:        https://github.com/siwvolunteers/siw-maintenance-mode
  * Description:       Maintenance mode voor www.siw.nl
- * Version:           1.4.4
+ * Version:           1.4.5
  * Author:            SIW Internationale Vrijwilligersprojecten
  * Author URI:        https://www.siw.nl
  * Text Domain:       siw-maintenance-mode
@@ -60,9 +60,8 @@ class SIW_Maintenance_Mode {
 			return;
 		}
 		
-		$plugin = $this->get_plugin_from_request();
-		check_admin_referer( "activate-plugin_{$plugin}" );
-		if ( function_exists( 'rocket_clean_domain' ) ) {
+		check_admin_referer( "activate-plugin_{$this->get_plugin_from_request()}" );
+		if ( $this->is_wp_rocket_active() ) {
 			rocket_clean_domain();
 			remove_action( 'activated_plugin', 'rocket_dismiss_plugin_box' );
 		}
@@ -75,10 +74,10 @@ class SIW_Maintenance_Mode {
 		if ( ! current_user_can( 'activate_plugins' ) ) {
 			return;
 		}
-		$plugin = $this->get_plugin_from_request();
-		check_admin_referer( "deactivate-plugin_{$plugin}" );
 
-		if ( function_exists( 'rocket_clean_domain' ) && function_exists( 'run_rocket_sitemap_preload' ) ) {
+		check_admin_referer( "deactivate-plugin_{$this->get_plugin_from_request()}" );
+
+		if ( $this->is_wp_rocket_active() ) {
 			rocket_clean_domain();
 			rocket_clean_minify();
 			rocket_clean_cache_busting();
@@ -92,6 +91,11 @@ class SIW_Maintenance_Mode {
 		return isset( $_REQUEST['plugin'] ) ? esc_attr( $_REQUEST['plugin'] ) : '';
 	}
 	
+	/** Controleer of WP Rocket actief is */
+	protected function is_wp_rocket_active(): bool {
+		return is_plugin_active( 'wp-rocket/wp-rocket.php' );
+	}
+
 	/** Toon melding dat maintenance mode actief is */
 	public function show_admin_notice() {
 		echo '<div class="notice notice-warning"><p><b>' . esc_html__( 'Maintenance mode is actief.', 'siw-maintenance-mode' ) . '</b></p></div>';
@@ -107,7 +111,7 @@ class SIW_Maintenance_Mode {
 	
 		$image_dir = plugin_dir_url( __FILE__ ) . 'images';
 		$html = 
-			"<h1><img src='{$image_dir}/logo.png' width='150px'></h1>" .
+			"<h1><img src='{$image_dir}/logo.png' width='258px'></h1>" .
 			'<p>' . esc_html__( 'In verband met onderhoud is onze website tijdelijk niet beschikbaar.', 'siw-maintenance-mode' ) . '<br> ' .
 			esc_html__( 'Onze excuses voor het ongemak.', 'siw-maintenance-mode' ) . '</p>' ;
 		$style =
@@ -121,6 +125,7 @@ class SIW_Maintenance_Mode {
 		}
 		body{
 			text-align: center;
+			width: 80%;
 		}
 		</style>
 		";
