@@ -1,15 +1,15 @@
-<?php
+<?php declare(strict_types=1);
+
 /**
  * SIW Maintenance Mode
  *
- * @package     SIW\Maintenance-Mode
  * @copyright   2017-2022 SIW Internationale Vrijwilligersprojecten
  *
  * @wordpress-plugin
  * Plugin Name:       SIW Maintenance Mode
  * Plugin URI:        https://github.com/siwvolunteers/siw-maintenance-mode
  * Description:       Maintenance mode voor www.siw.nl
- * Version:           1.4.5
+ * Version:           1.4.6
  * Author:            SIW Internationale Vrijwilligersprojecten
  * Author URI:        https://www.siw.nl
  * Text Domain:       siw-maintenance-mode
@@ -17,14 +17,14 @@
  * Requires at least: 5.5
  * Requires PHP:      7.4
  */
- 
+
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 /**
  * Class om Maintenance Mode te activeren
- * 
+ *
  * - Cache uitschakelen
  * - Onderhoudspagina tonen voor niet-ingelogde gebruikers
  * - Cache legen bij activeren en deactiveren van plugin
@@ -33,7 +33,7 @@ class SIW_Maintenance_Mode {
 
 	/**
 	 * Constructor
-	 * 
+	 *
 	 * - Registeer activatie- en deactivatiehooks
 	 * - Schakel cache uit
 	 * - Toon admin notice
@@ -45,8 +45,8 @@ class SIW_Maintenance_Mode {
 
 		add_filter( 'do_rocket_generate_caching_files', '__return_false' );
 		add_action( 'admin_notices', [ $this, 'show_admin_notice' ] );
-		add_action( 'get_header', [ $this, 'show_maintenance_screen'] );
-		add_action( 'init', [ $this, 'load_textdomain'] );
+		add_action( 'get_header', [ $this, 'show_maintenance_screen' ] );
+		add_action( 'init', [ $this, 'load_textdomain' ] );
 	}
 
 	/** Laadt vertalingen */
@@ -59,7 +59,7 @@ class SIW_Maintenance_Mode {
 		if ( ! current_user_can( 'activate_plugins' ) ) {
 			return;
 		}
-		
+
 		check_admin_referer( "activate-plugin_{$this->get_plugin_from_request()}" );
 		if ( $this->is_wp_rocket_active() ) {
 			rocket_clean_domain();
@@ -67,9 +67,7 @@ class SIW_Maintenance_Mode {
 		}
 	}
 
-	/**
-	 * Cache legen (inclusief minified bestanden) en preload starten als plugin gedeactiveerd wordt
-	 */	
+	/** Cache legen (inclusief minified bestanden) en preload starten als plugin gedeactiveerd wordt */
 	public function deactivate() {
 		if ( ! current_user_can( 'activate_plugins' ) ) {
 			return;
@@ -88,9 +86,9 @@ class SIW_Maintenance_Mode {
 
 	/** Haalt plugin-naam uit request-global */
 	protected function get_plugin_from_request(): string {
-		return isset( $_REQUEST['plugin'] ) ? esc_attr( $_REQUEST['plugin'] ) : '';
+		return isset( $_REQUEST['plugin'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['plugin'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	}
-	
+
 	/** Controleer of WP Rocket actief is */
 	protected function is_wp_rocket_active(): bool {
 		return is_plugin_active( 'wp-rocket/wp-rocket.php' );
@@ -105,15 +103,15 @@ class SIW_Maintenance_Mode {
 	public function show_maintenance_screen() {
 
 		global $pagenow;
-		if ( $pagenow == 'wp-login.php' || current_user_can( 'manage_options' ) || is_admin() ) {
+		if ( 'wp-login.php' === $pagenow || current_user_can( 'manage_options' ) || is_admin() ) {
 			return;
 		}
-	
-		$image_dir = plugin_dir_url( __FILE__ ) . 'images';
-		$html = 
+
+		$image_dir = esc_url( plugin_dir_url( __FILE__ ) . 'images' );
+		$html =
 			"<h1><img src='{$image_dir}/logo.png' width='258px'></h1>" .
 			'<p>' . esc_html__( 'In verband met onderhoud is onze website tijdelijk niet beschikbaar.', 'siw-maintenance-mode' ) . '<br> ' .
-			esc_html__( 'Onze excuses voor het ongemak.', 'siw-maintenance-mode' ) . '</p>' ;
+			esc_html__( 'Onze excuses voor het ongemak.', 'siw-maintenance-mode' ) . '</p>';
 		$style =
 		"<style>
 		html{
@@ -129,10 +127,10 @@ class SIW_Maintenance_Mode {
 		}
 		</style>
 		";
-	
-		header( 'Retry-After: 3600' );
-		wp_die( $html . $style, esc_html__( 'Onderhoud', 'siw-maintenance-mode' ), 503 );
+
+		header( sprintf( 'Retry-After: %s', HOUR_IN_SECONDS ) );
+		wp_die( $html . $style, esc_html__( 'Onderhoud', 'siw-maintenance-mode' ), \WP_Http::SERVICE_UNAVAILABLE ); // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
 	}
 }
 
-new SIW_Maintenance_Mode;
+new SIW_Maintenance_Mode();
