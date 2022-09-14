@@ -9,7 +9,7 @@
  * Plugin Name:       SIW Maintenance Mode
  * Plugin URI:        https://github.com/siwvolunteers/siw-maintenance-mode
  * Description:       Maintenance mode voor www.siw.nl
- * Version:           1.4.6
+ * Version:           1.4.7
  * Author:            SIW Internationale Vrijwilligersprojecten
  * Author URI:        https://www.siw.nl
  * Text Domain:       siw-maintenance-mode
@@ -67,7 +67,7 @@ class SIW_Maintenance_Mode {
 		}
 	}
 
-	/** Cache legen (inclusief minified bestanden) en preload starten als plugin gedeactiveerd wordt */
+	/** Cache legen (inclusief minified bestanden) als plugin gedeactiveerd wordt */
 	public function deactivate() {
 		if ( ! current_user_can( 'activate_plugins' ) ) {
 			return;
@@ -79,7 +79,6 @@ class SIW_Maintenance_Mode {
 			rocket_clean_domain();
 			rocket_clean_minify();
 			rocket_clean_cache_busting();
-			run_rocket_sitemap_preload();
 			remove_action( 'deactivated_plugin', 'rocket_dismiss_plugin_box' );
 		}
 	}
