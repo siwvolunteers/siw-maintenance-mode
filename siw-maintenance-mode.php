@@ -3,13 +3,13 @@
 /**
  * SIW Maintenance Mode
  *
- * @copyright   2017-2022 SIW Internationale Vrijwilligersprojecten
+ * @copyright   2017-2023 SIW Internationale Vrijwilligersprojecten
  *
  * @wordpress-plugin
  * Plugin Name:       SIW Maintenance Mode
  * Plugin URI:        https://github.com/siwvolunteers/siw-maintenance-mode
  * Description:       Maintenance mode voor www.siw.nl
- * Version:           1.4.7
+ * Version:           1.4.8
  * Author:            SIW Internationale Vrijwilligersprojecten
  * Author URI:        https://www.siw.nl
  * Text Domain:       siw-maintenance-mode
@@ -106,9 +106,11 @@ class SIW_Maintenance_Mode {
 			return;
 		}
 
+		$logo_url = wp_get_attachment_image_url( get_theme_mod( 'custom_logo' ), 'full' );
+
 		$image_dir = esc_url( plugin_dir_url( __FILE__ ) . 'images' );
 		$html =
-			"<h1><img src='{$image_dir}/logo.png' width='258px'></h1>" .
+			"<h1><img src='{$logo_url}' title='logo'></h1>" .
 			'<p>' . esc_html__( 'In verband met onderhoud is onze website tijdelijk niet beschikbaar.', 'siw-maintenance-mode' ) . '<br> ' .
 			esc_html__( 'Onze excuses voor het ongemak.', 'siw-maintenance-mode' ) . '</p>';
 		$style =
