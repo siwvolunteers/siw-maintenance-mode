@@ -9,7 +9,7 @@
  * Plugin Name:       SIW Maintenance Mode
  * Plugin URI:        https://github.com/siwvolunteers/siw-maintenance-mode
  * Description:       Maintenance mode voor www.siw.nl
- * Version:           1.4.8
+ * Version:           1.4.9
  * Author:            SIW Internationale Vrijwilligersprojecten
  * Author URI:        https://www.siw.nl
  * Text Domain:       siw-maintenance-mode
@@ -56,11 +56,6 @@ class SIW_Maintenance_Mode {
 
 	/** Cache legen als plugin geactiveerd wordt */
 	public function activate() {
-		if ( ! current_user_can( 'activate_plugins' ) ) {
-			return;
-		}
-
-		check_admin_referer( "activate-plugin_{$this->get_plugin_from_request()}" );
 		if ( $this->is_wp_rocket_active() ) {
 			rocket_clean_domain();
 			remove_action( 'activated_plugin', 'rocket_dismiss_plugin_box' );
@@ -69,23 +64,12 @@ class SIW_Maintenance_Mode {
 
 	/** Cache legen (inclusief minified bestanden) als plugin gedeactiveerd wordt */
 	public function deactivate() {
-		if ( ! current_user_can( 'activate_plugins' ) ) {
-			return;
-		}
-
-		check_admin_referer( "deactivate-plugin_{$this->get_plugin_from_request()}" );
-
 		if ( $this->is_wp_rocket_active() ) {
 			rocket_clean_domain();
 			rocket_clean_minify();
 			rocket_clean_cache_busting();
 			remove_action( 'deactivated_plugin', 'rocket_dismiss_plugin_box' );
 		}
-	}
-
-	/** Haalt plugin-naam uit request-global */
-	protected function get_plugin_from_request(): string {
-		return isset( $_REQUEST['plugin'] ) ? sanitize_text_field( wp_unslash( $_REQUEST['plugin'] ) ) : ''; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	}
 
 	/** Controleer of WP Rocket actief is */
